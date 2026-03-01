@@ -10,10 +10,14 @@ const api = axios.create({
   },
 });
 
-interface FetchNotesProps {
-  query?: string,
+export type tagType = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
+
+export interface FetchNotesProps {
+  search?: string,
+  tag?: tagType,
+  sortBy?: string,
   page?: number,
-  perPage: number,
+  perPage?: number,
 }
 
 interface FetchNotesResponse {
@@ -21,9 +25,9 @@ interface FetchNotesResponse {
   totalPages: number,
 }
 
-export async function fetchNotes({ query, page, perPage }: FetchNotesProps): Promise<FetchNotesResponse> {
-  const res = await api.get<FetchNotesResponse>("/docs", {
-    params: { query, page, perPage },
+export async function fetchNotes({ search, tag, sortBy, page, perPage }: FetchNotesProps): Promise<FetchNotesResponse> {
+  const res = await api.get<FetchNotesResponse>("/notes", {
+    params: { search, tag, sortBy, page, perPage },
   });
 
   return res.data;
@@ -31,16 +35,16 @@ export async function fetchNotes({ query, page, perPage }: FetchNotesProps): Pro
 
 export interface CreateNoteProps {
     title: string;
-    content: string;
+    content: string | null;
     tag: string;
 }
     
 export async function createNote(data: CreateNoteProps): Promise<Note> {
-  const res = await api.post<Note>("/docs", data);
+  const res = await api.post<Note>("/notes", data);
   return res.data;
 }
 
 export async function deleteNote(id: string): Promise<Note> {
-  const res = await api.delete<Note>(`/docs/${id}`);
+  const res = await api.delete<Note>(`/notes/${id}`);
   return res.data;
 }
