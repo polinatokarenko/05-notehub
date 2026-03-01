@@ -1,15 +1,24 @@
+/*css*/
+import css from "./NoteForm.module.css";
+
+/*form*/
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
-import { useId } from "react";
 import * as Yup from "yup";
-import css from "./NoteForm.module.css";
-import { createNote } from "../../services/noteService";
-import type { CreateNoteProps } from "../../services/noteService";
+
+/*hooks*/
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useId } from "react";
+
+/*services*/
+import { createNote } from "../../services/noteService";
+
+/*types*/
+import type { CreateNoteProps } from "../../services/noteService";
+
 
 interface NoteFormProps {
     onClose: () => void;
-    setTag: (tag: string) => void;
 }
 
 type FormValues = {
@@ -18,7 +27,7 @@ type FormValues = {
   tag: string;
 };
 
-export default function NoteForm({ onClose, setTag }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
     const fieldId = useId();
     const initialValues = {
         title: "",
@@ -44,11 +53,10 @@ export default function NoteForm({ onClose, setTag }: NoteFormProps) {
         setSubmitting(true);
         const payload: CreateNoteProps = {
             title: values.title,
-            content: values.content === "" ? null : values.content,
+            content: values.content,
             tag: values.tag,
         };
         await mutation.mutateAsync(payload);
-        setTag(values.tag);
         resetForm();
     } catch (err) {
       console.error("Submit error:", err);
@@ -75,12 +83,12 @@ export default function NoteForm({ onClose, setTag }: NoteFormProps) {
                 <div className={css.formGroup}>
                     <label htmlFor={`${fieldId}-title`}>Title</label>
                     <Field id={`${fieldId}-title`} name="title" type="text" className={css.input} />
-                    <ErrorMessage name="title" className={css.error} />
+                    <ErrorMessage component="span" name="title" className={css.error} />
                 </div>
                 <div className={css.formGroup}>
                     <label htmlFor={`${fieldId}-content`}>Content</label>
                     <Field as="textarea" id={`${fieldId}-content`} name="content" rows={8} className={css.textarea} />
-                    <ErrorMessage name="content" className={css.error} />
+                    <ErrorMessage component="span" name="content" className={css.error} />
                 </div>
                 <div className={css.formGroup}>
                     <label htmlFor={`${fieldId}-tag`}>Tag</label>
@@ -91,7 +99,7 @@ export default function NoteForm({ onClose, setTag }: NoteFormProps) {
                         <option value="Meeting">Meeting</option>
                         <option value="Shopping">Shopping</option>
                     </Field>
-                    <ErrorMessage name="tag" className={css.error} />
+                    <ErrorMessage component="span" name="tag" className={css.error} />
                 </div>
 
         <div className={css.actions}>

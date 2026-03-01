@@ -1,4 +1,7 @@
+/*css*/
 import css from "./Pagination.module.css";
+
+/*pagination*/
 import ReactPaginate from "react-paginate";
 
 interface PaginationProps {

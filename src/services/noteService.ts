@@ -1,4 +1,7 @@
+/*api*/
 import axios from "axios";
+
+/*types*/
 import type { Note } from "../types/note";
 
 const token = import.meta.env.VITE_NOTEHUB_TOKEN;
@@ -35,7 +38,7 @@ export async function fetchNotes({ search, tag, sortBy, page, perPage }: FetchNo
 
 export interface CreateNoteProps {
     title: string;
-    content: string | null;
+    content: string;
     tag: string;
 }
     

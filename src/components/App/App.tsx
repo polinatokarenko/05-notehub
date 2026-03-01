@@ -1,16 +1,29 @@
+/*css*/
 import css from "./App.module.css";
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+/*hooks*/
+import { useState, useEffect } from "react";
+import { useQuery, keepPreviousData} from "@tanstack/react-query";
+import { useDebouncedCallback } from "use-debounce";
+
+/*components*/
 import NoteList from "../NoteList/NoteList";
 import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import SearchBox from "../SearchBox/SearchBox";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import Loader from "../Loader/Loader";
+
+/*services*/
 import { fetchNotes } from "../../services/noteService";
+
+/*types*/
 import type { Note } from "../../types/note";
-import type { tagType } from "../../services/noteService";
-import { deleteNote } from "../../services/noteService";
-import { useDebouncedCallback } from "use-debounce";
+
+/*message*/
+import toast, { Toaster } from 'react-hot-toast';
+
 
 interface FetchNotesResponse {
   notes: Note[];
@@ -25,24 +38,20 @@ export default function App() {
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const [tag, setTag] = useState<tagType>('Todo');
-
-  const { data } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes", search, tag, page, perPage],
-    queryFn: () => fetchNotes({ search, tag, page, perPage }),
+  const { data, isSuccess, isError, isLoading } = useQuery<FetchNotesResponse>({
+    queryKey: ["notes", search, page, perPage],
+    queryFn: () => fetchNotes({ search, page, perPage }),
     initialData: { notes: [], totalPages: 0 },
+    placeholderData: keepPreviousData,
   });
 
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
-  });
-
-  const handleCloseModal = () => setIsModalVisible(false);
+  useEffect(() => {
+  if (isSuccess && data.notes.length === 0 && search.length > 0 ) {
+    toast.error('No notes were found :(', {
+      style: { fontFamily: 'Montserrat' },
+    });
+    }
+  }, [isSuccess, data.notes.length, search.length]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -50,25 +59,31 @@ export default function App() {
   }
 
   const debouncedSearch = useDebouncedCallback((value) => {
-    setSearch(value)
+    setSearch(value);
+    setPage(1);
   }, 500);
+
+  const handleCloseModal = () => setIsModalVisible(false);
 
   return (
     <div className={css.app}>
+      <Toaster />
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
       <header className={css.toolbar}>
         <SearchBox onSearch={handleSearch} />
-        {data?.totalPages > 1 && <Pagination page={page} setPage={setPage} totalPages={data.totalPages} />}
+        {data.totalPages > 1 && <Pagination page={page} setPage={setPage} totalPages={data.totalPages} />}
         <button className={css.button} onClick={() => setIsModalVisible(true)}>
           Create note +
         </button>
         {isModalVisible && (
           <Modal onClose={handleCloseModal}>
-            <NoteForm onClose={handleCloseModal} setTag={() => setTag} />
+            <NoteForm onClose={handleCloseModal} />
           </Modal>
         )}
       </header>
       
-      <NoteList notes={data?.notes ?? []} onDelete={(id) => deleteMutation.mutate(id)} isDeleting={deleteMutation.isPending}/>
+      {data?.notes.length > 1 && <NoteList notes={data.notes} />}
     </div>
   );
 }
