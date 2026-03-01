@@ -39,8 +39,8 @@ export default function App() {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const { data, isSuccess, isError, isLoading } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes", search, page, perPage],
-    queryFn: () => fetchNotes({ search, page, perPage }),
+    queryKey: ["notes", search, page],
+    queryFn: () => fetchNotes({ search, page, perPage}),
     initialData: { notes: [], totalPages: 0 },
     placeholderData: keepPreviousData,
   });
@@ -83,7 +83,7 @@ export default function App() {
         )}
       </header>
       
-      {data?.notes.length > 1 && <NoteList notes={data.notes} />}
+      {data?.notes.length > 0 && <NoteList notes={data.notes} />}
     </div>
   );
 }
